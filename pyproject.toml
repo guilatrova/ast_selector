@@ -54,6 +54,7 @@ mypy = "^0.950"
 tryceratops = "^1.1.0"
 pre-commit = "^2.18.1"
 pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
 
 [tool.black]
 line-length = 120
