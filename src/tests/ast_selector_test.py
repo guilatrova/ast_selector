@@ -174,4 +174,6 @@ def test_drill_function_returning_int():
     assert isinstance(found, ast.arguments)
 
 
-# TODO: Support array
+# TODO: Support array (e.g. FunctionDef.body[0])
+# TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
+# TODO: Support deeper references (e.g. FunctionDef[1] when FunctionDef(not this) FunctionDef(this))
