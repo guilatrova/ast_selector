@@ -1,7 +1,7 @@
 import ast
 import pytest  # noqa: F401
 
-from ast_selector.main import AstSelector
+from ast_selector import AstSelector
 
 from .helpers import read_sample
 
