@@ -164,4 +164,14 @@ def test_filter_functions_returning_int_with_name():
     assert found[0].name == "main_int"
 
 
-# TODO: Drill reference
+def test_drill_function_returning_int():
+    tree = read_sample("funcs")
+    query = "FunctionDef.returns[id=int] $FunctionDef.args"
+
+    selector = AstSelector(query, tree)
+    found = selector.first()
+
+    assert isinstance(found, ast.arguments)
+
+
+# TODO: Support array
