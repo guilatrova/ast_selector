@@ -153,5 +153,15 @@ def test_filter_functions_returning_int():
     assert all(isinstance(x, ast.FunctionDef) for x in found)
 
 
+def test_filter_functions_returning_int_with_name():
+    tree = read_sample("funcs")
+    query = "FunctionDef.returns[id=int] $FunctionDef[name=main_int]"
+
+    selector = AstSelector(query, tree)
+    found = selector.all()
+
+    assert len(found) == 1
+    assert found[0].name == "main_int"
+
+
 # TODO: Drill reference
-# TODO: Filter reference

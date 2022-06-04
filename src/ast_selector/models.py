@@ -100,11 +100,10 @@ class SelectorGroup:
 @dataclass
 class ElementSelector(SelectorGroup):
     element_type: Type[ast.AST] = field(init=False)
-    attr_selectors: List[AttributeSelector] = field(init=False)
+    attr_selectors: List[AttributeSelector] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.element_type = getattr(ast, self.query)
-        self.attr_selectors = []
 
     def append_attr_selector(self, selector: SelectorGroup) -> None:
         self.attr_selectors.append(selector.to_attribute_selector())
@@ -130,7 +129,6 @@ class ElementSelector(SelectorGroup):
 class DrillSelector(ElementSelector):
     def __post_init__(self) -> None:
         self.element_type = ast.AST
-        self.attr_selectors = []
         self.query = self.query.lstrip(".")
 
     def _find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
@@ -207,7 +205,8 @@ class ReferenceSelector(ElementSelector):
                 selected = selected.parent  # type: ignore
 
             # TODO: Filter
-            yield selected
+            if self._matches(selected):
+                yield selected
 
 
 @dataclass
