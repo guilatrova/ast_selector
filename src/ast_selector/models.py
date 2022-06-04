@@ -179,7 +179,6 @@ class AttributeSelector(SelectorGroup):
         return False
 
     def matches(self, node: ast.AST) -> bool:
-        # TODO: consider explicit None type
         if self.condition == AttributeSelectorComparator.INSTANCE:
             return self._match_instance(node)
 
@@ -204,7 +203,6 @@ class ReferenceSelector(ElementSelector):
             for _ in range(parent_level):
                 selected = selected.parent  # type: ignore
 
-            # TODO: Filter
             if self._matches(selected):
                 yield selected
 
