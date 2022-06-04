@@ -27,11 +27,11 @@ class AstSelector:
         # TODO: Validate query
 
     def _resolve_query(self) -> List[ElementSelector]:
-        NODE_RE = r"(\$?[A-Z]\w+)"
+        NODE_RE = r"(\$?[A-Z]\w+)*"
         ATTR_RE = r"(\[[a-zA-Z0-9_= ]+\])*"
         DRILL_RE = r"(\.\w+)*"
 
-        reggroup = re.findall(f"{NODE_RE}{ATTR_RE}{DRILL_RE}", self.query)
+        reggroup = re.findall(f"{DRILL_RE}{ATTR_RE}{NODE_RE}", self.query)
         el_selector: Optional[ElementSelector] = None
         reference_table = NavigationReference()
         results = []
@@ -49,9 +49,11 @@ class AstSelector:
                         if selector.is_attribute_selector:
                             el_selector.append_attr_selector(selector)
                         elif selector.is_reference_selector:
-                            results.append(selector.to_reference_selector())
+                            el_selector = selector.to_reference_selector()
+                            results.append(el_selector)
                         else:  # drill
-                            results.append(selector.to_drill_selector())
+                            el_selector = selector.to_drill_selector()
+                            results.append(el_selector)
 
         return results
 
