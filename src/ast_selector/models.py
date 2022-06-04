@@ -30,8 +30,9 @@ class NavigationReference:
         ref = self._build_reference(selector_group)
         self.reference_table[ref].append(val)
 
-    def get_ref(self, ref: str) -> List[ast.AST]:
-        return self.reference_table[ref]
+    def get_ref_idx(self, ref: str) -> int:
+        k = list(reversed(self.reference_table.keys()))
+        return k.index(ref)
 
 
 @dataclass
@@ -198,10 +199,15 @@ class ReferenceSelector(ElementSelector):
         if not isinstance(branches, Iterator):
             branches = iter([branches])
 
-        list(branches)  # Force generators to build reference table until this point
-        nodes = self.navigation.get_ref(self.query)
-        # TODO: Filter
-        yield from nodes
+        tree = list(branches)  # Force generators to build reference table until this point
+        parent_level = self.navigation.get_ref_idx(self.query)
+        for node in tree:
+            selected = node
+            for _ in range(parent_level):
+                selected = selected.parent  # type: ignore
+
+            # TODO: Filter
+            yield selected
 
 
 @dataclass

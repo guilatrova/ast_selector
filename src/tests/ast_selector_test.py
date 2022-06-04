@@ -1,4 +1,5 @@
 import ast
+import pytest  # noqa: F401
 
 from ast_selector.main import AstSelector
 
@@ -139,6 +140,17 @@ def test_filter_functions_returning_str():
 
     assert len(found) == 1
     assert isinstance(found[0], ast.FunctionDef)
+
+
+def test_filter_functions_returning_int():
+    tree = read_sample("funcs")
+    query = "FunctionDef.returns[id=int] $FunctionDef"
+
+    selector = AstSelector(query, tree)
+    found = selector.all()
+
+    assert len(found) == 2
+    assert all(isinstance(x, ast.FunctionDef) for x in found)
 
 
 # TODO: Drill reference

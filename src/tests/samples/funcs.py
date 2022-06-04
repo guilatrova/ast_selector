@@ -4,3 +4,7 @@ def main() -> str:
 
 def main_int() -> int:
     return 10
+
+
+def second_int() -> int:
+    return 20
