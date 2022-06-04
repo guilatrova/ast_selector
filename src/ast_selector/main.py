@@ -5,7 +5,7 @@ import re
 from typing import Generator, List, Optional
 
 from .exceptions import UnableToFindElement
-from .models import ElementSelector, SelectorGroup
+from .models import ElementSelector, NavigationReference, SelectorGroup
 
 
 class AstSelector:
@@ -33,12 +33,13 @@ class AstSelector:
 
         reggroup = re.findall(f"{NODE_RE}{ATTR_RE}{DRILL_RE}", self.query)
         el_selector: Optional[ElementSelector] = None
+        reference_table = NavigationReference()
         results = []
 
         for reg in reggroup:
             for g in reg:
                 if g:
-                    selector = SelectorGroup(g)
+                    selector = SelectorGroup(reference_table, g)
 
                     if selector.is_element_selector:
                         el_selector = selector.to_element_selector()
