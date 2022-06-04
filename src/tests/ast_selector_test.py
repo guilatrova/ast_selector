@@ -76,3 +76,22 @@ def test_find_drill_properties():
     found = selector.first()
 
     assert isinstance(found, ast.Call)
+
+
+def test_filter_drill_properties():
+    """
+    Drill ability:
+
+    if Expr has value and value is Call
+    -> then take value from Expr
+
+    if Expr.value has func and func is Attribute
+    -> then take func from Expr.value
+    """
+    tree = read_sample("log_object")
+    query = "Expr[value is Call].value[func is Attribute].func"
+
+    selector = AstSelector(query, tree)
+    found = selector.first()
+
+    assert isinstance(found, ast.Attribute)
