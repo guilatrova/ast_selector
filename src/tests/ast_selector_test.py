@@ -128,3 +128,18 @@ def test_drill_properties_get_second():
 
     assert isinstance(found, ast.Call)
     assert isinstance(found.func, ast.Attribute)
+
+
+def test_filter_functions_returning_str():
+    tree = read_sample("funcs")
+    query = "FunctionDef.returns[id=str].."
+
+    selector = AstSelector(query, tree)
+    found = selector.all()
+
+    assert len(found) == 1
+    assert isinstance(found[0], ast.FunctionDef)
+
+
+# TODO: Drill reference
+# TODO: Filter reference

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import itertools
 import re
 from typing import Generator, List, Optional
 
@@ -27,33 +28,27 @@ class AstSelector:
         # TODO: Validate query
 
     def _resolve_query(self) -> List[ElementSelector]:
+        PARENT_RE = r"(\.\.)*"
         NODE_RE = r"(\$?[A-Z]\w+)*"
         ATTR_RE = r"(\[[a-zA-Z0-9_= ]+\])*"
         DRILL_RE = r"(\.\w+)*"
 
-        reggroup = re.findall(f"{DRILL_RE}{ATTR_RE}{NODE_RE}", self.query)
+        reg = re.findall(f"{PARENT_RE}{DRILL_RE}{ATTR_RE}{NODE_RE}", self.query)
+        reggroup = [x for x in itertools.chain(*reg) if x]
+
         el_selector: Optional[ElementSelector] = None
         reference_table = NavigationReference()
         results = []
 
-        for reg in reggroup:
-            for g in reg:
-                if g:
-                    selector = SelectorGroup(reference_table, g)
+        for g in reggroup:
+            selector = SelectorGroup(reference_table, g)
 
-                    if selector.is_element_selector:
-                        el_selector = selector.to_element_selector()
-                        results.append(el_selector)
-
-                    elif el_selector is not None:
-                        if selector.is_attribute_selector:
-                            el_selector.append_attr_selector(selector)
-                        elif selector.is_reference_selector:
-                            el_selector = selector.to_reference_selector()
-                            results.append(el_selector)
-                        else:  # drill
-                            el_selector = selector.to_drill_selector()
-                            results.append(el_selector)
+            if selector.is_attribute_selector:
+                if el_selector is not None:
+                    el_selector.append_attr_selector(selector)
+            else:
+                el_selector = selector.to_element_selector()
+                results.append(el_selector)
 
         return results
 
