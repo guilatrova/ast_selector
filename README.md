@@ -18,3 +18,47 @@
 
   <a href="https://twitter.com/intent/user?screen_name=guilatrova"><img alt="Follow guilatrova" src="https://img.shields.io/twitter/follow/guilatrova?style=social"/></a>
 </p>
+
+> "Query AST elements 🌲 by using CSS Selector-like 💅 syntax."
+
+## Installation and usage
+
+### Installation
+
+```
+pip install ast_selector
+```
+
+### Usage
+
+```py
+from ast_selector import AstSelector
+
+tree = load_python_code_as_ast_tree()
+query = "FunctionDef Raise $FunctionDef"
+# Query all functions that raises at least an exception
+
+functions_raising_exceptions = AstSelector(query, tree).all()
+```
+
+### Use Cases
+
+#### Functions that return int
+
+```py
+from ast_selector import AstSelector
+
+tree = load_python_code_as_ast_tree()
+query = "FunctionDef.returns[id=int] $FunctionDef"
+# Query all functions that return ints e.g. def sum() -> int
+
+function_element = AstSelector(query, tree).first()
+```
+
+## License
+
+MIT
+
+## Credits
+
+It's extremely hard to keep hacking on open source like that while keeping a full-time job. I thank God from the bottom of my heart for both the inspiration and the energy.
