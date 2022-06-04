@@ -6,4 +6,6 @@ extend-ignore=
     ANN204 # type __init__
 per-file-ignores=
     src/tests/*:ANN201
-exclude=__init__.py
+exclude=
+    __init__.py,
+    tests/samples/*

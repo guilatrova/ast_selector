@@ -12,6 +12,8 @@ repos:
     rev: 4.0.1
     hooks:
       - id: flake8
+        additional_dependencies: [flake8-annotations==2.9.0]
+        exclude: tests/samples/
   - repo: https://github.com/timothycrosley/isort
     rev: 5.10.1
     hooks:
@@ -20,7 +22,9 @@ repos:
     rev: v1.1.0
     hooks:
       - id: tryceratops
+        exclude: tests/samples/
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.950
     hooks:
       - id: mypy
+        exclude: tests/samples/

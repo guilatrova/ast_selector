@@ -1,6 +1,9 @@
-def main(raw_selector: str):
+import ast
+
+
+class AstSelector:
     """
-    CSS Selector:
+    CSS(Ast) Selector:
 
     Raise = instance type
     > [el] = direct child
@@ -10,9 +13,11 @@ def main(raw_selector: str):
     [attr is None] = any element where attr is X
     [a=c][b=d] = combine attr selectors
     """
-    selector_array = raw_selector.split()
 
+    def __init__(self, query: str, tree: ast.AST) -> None:
+        self.tree = tree
+        self.query = query
+        # TODO: Validate query
 
-if __name__ == "__main__:
-    raw_selector = input("Selector:")
-    main(raw_selector)
+    def exists(self) -> bool:
+        return False
