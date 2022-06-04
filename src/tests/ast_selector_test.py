@@ -101,7 +101,7 @@ def test_drill_properties_get_first():
     """
     Drill ability + Get origin:
 
-    Drill 2 levels and get first level
+    Drill 2 levels and get first reference
     """
     tree = read_sample("log_object")
     query = "Expr[value is Call].value[func is Attribute].func $Expr"

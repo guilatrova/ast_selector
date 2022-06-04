@@ -26,11 +26,15 @@ class NavigationReference:
         ref = self._build_reference(selector_group)
         self.reference_table[ref].append(val)
 
+    def get_ref(self, ref: str) -> List[ast.AST]:
+        return self.reference_table[ref]
+
 
 @dataclass
 class SelectorGroup:
     navigation: NavigationReference
     query: str
+    referentiable = True
 
     @property
     def is_attribute_selector(self) -> bool:
@@ -41,8 +45,18 @@ class SelectorGroup:
         return self.query.startswith(".")
 
     @property
+    def is_reference_selector(self) -> bool:
+        return self.query.startswith("$")
+
+    @property
     def is_element_selector(self) -> bool:
-        return not self.is_attribute_selector and not self.is_drill_selector
+        return all(
+            [
+                not self.is_attribute_selector,
+                not self.is_drill_selector,
+                not self.is_reference_selector,
+            ]
+        )
 
     def to_element_selector(self) -> ElementSelector:
         return ElementSelector(self.navigation, self.query)
@@ -53,12 +67,17 @@ class SelectorGroup:
     def to_drill_selector(self) -> DrillSelector:
         return DrillSelector(self.navigation, self.query)
 
+    def to_reference_selector(self) -> ReferenceSelector:
+        return ReferenceSelector(self.navigation, self.query)
+
     def _find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
         raise NotImplementedError()
 
     def find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
         for node in self._find_nodes(branches):
-            self.navigation.append(self, node)
+            if self.referentiable:
+                self.navigation.append(self, node)
+
             yield node
 
 
@@ -124,3 +143,19 @@ class AttributeSelector(SelectorGroup):
                 return True
 
         return False
+
+
+@dataclass
+class ReferenceSelector(ElementSelector):
+    referentiable = False
+
+    def __post_init__(self) -> None:
+        self.element_type = ast.AST
+
+    def _find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
+        if not isinstance(branches, Iterator):
+            branches = iter([branches])
+
+        _ = list(branches)  # Force generators to build reference table until this point
+        nodes = self.navigation.get_ref(self.query)
+        yield from nodes

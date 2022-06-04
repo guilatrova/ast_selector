@@ -27,7 +27,7 @@ class AstSelector:
         # TODO: Validate query
 
     def _resolve_query(self) -> List[ElementSelector]:
-        NODE_RE = r"([A-Z]\w+)"
+        NODE_RE = r"(\$?[A-Z]\w+)"
         ATTR_RE = r"(\[[a-zA-Z0-9_= ]+\])*"
         DRILL_RE = r"(\.\w+)*"
 
@@ -48,6 +48,8 @@ class AstSelector:
                     elif el_selector is not None:
                         if selector.is_attribute_selector:
                             el_selector.append_attr_selector(selector)
+                        elif selector.is_reference_selector:
+                            results.append(selector.to_reference_selector())
                         else:  # drill
                             results.append(selector.to_drill_selector())
 
