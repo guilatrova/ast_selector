@@ -1,4 +1,4 @@
-"""Easily find and query AST elements by using CSS Selector-like syntax"""
+"""Query AST elements by using CSS Selector-like syntax"""
 
 from .main import AstSelector
 
