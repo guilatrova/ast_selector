@@ -92,12 +92,13 @@ class AstSelector:
 
         if r:
             for g in r.groups():
-                selector = SelectorGroup(g)
+                if g:
+                    selector = SelectorGroup(g)
 
-                if selector.is_element_selector:
-                    el_selector = selector.to_element_selector()
-                elif el_selector is not None:
-                    el_selector.append_attr_selector(selector)
+                    if selector.is_element_selector:
+                        el_selector = selector.to_element_selector()
+                    elif el_selector is not None:
+                        el_selector.append_attr_selector(selector)
 
         if el_selector:
             yield el_selector
@@ -115,3 +116,7 @@ class AstSelector:
             return False
         else:
             return True
+
+    def count(self) -> int:
+        nodes = self._resolve()
+        return len(list(nodes))
