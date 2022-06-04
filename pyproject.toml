@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ast_selector"
-version = "0.1.0"
+version = "0.1.1"
 description = "Easily find and query AST elements by using CSS Selector-like syntax"
 authors = ["Guilherme Latrova <hello@guilatrova.dev>"]
 license = "MIT"
