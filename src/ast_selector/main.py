@@ -17,14 +17,21 @@ class SelectorGroup:
         return self.query.startswith("[")
 
     @property
+    def is_drill_selector(self) -> bool:
+        return self.query.startswith(".")
+
+    @property
     def is_element_selector(self) -> bool:
-        return not self.is_attribute_selector
+        return not self.is_attribute_selector and not self.is_drill_selector
 
     def to_element_selector(self) -> ElementSelector:
         return ElementSelector(self.query)
 
     def to_attribute_selector(self) -> AttributeSelector:
         return AttributeSelector(self.query)
+
+    def to_drill_selector(self) -> DrillSelector:
+        return DrillSelector(self.query)
 
 
 @dataclass
@@ -49,6 +56,23 @@ class ElementSelector(SelectorGroup):
                     everything_valid = all(attr.matches(node) for attr in self.attr_selectors)
                     if everything_valid:
                         yield node
+
+
+@dataclass
+class DrillSelector(ElementSelector):
+    def __post_init__(self) -> None:
+        self.element_type = ast.AST
+        self.attr_selectors = []
+        self.query = self.query.lstrip(".")
+
+    def find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
+        if not isinstance(branches, Iterator):
+            branches = iter([branches])
+
+        for node in list(branches):
+            if drilled := getattr(node, self.query, False):
+                if isinstance(drilled, ast.AST):
+                    yield drilled
 
 
 @dataclass
@@ -92,9 +116,14 @@ class AstSelector:
         self.query = query
         # TODO: Validate query
 
-    def _resolve_query(self) -> Generator[ElementSelector, None, None]:
-        reggroup = re.findall(r"([A-Z]\w+)(\[[a-zA-Z0-9_= ]+\])*", self.query)
+    def _resolve_query(self) -> List[ElementSelector]:
+        NODE_RE = r"([A-Z]\w+)"
+        ATTR_RE = r"(\[[a-zA-Z0-9_= ]+\])*"
+        DRILL_RE = r"(\.\w+)*"
+
+        reggroup = re.findall(f"{NODE_RE}{ATTR_RE}{DRILL_RE}", self.query)
         el_selector: Optional[ElementSelector] = None
+        results = []
 
         for reg in reggroup:
             for g in reg:
@@ -102,18 +131,19 @@ class AstSelector:
                     selector = SelectorGroup(g)
 
                     if selector.is_element_selector:
-                        if el_selector is None:
-                            yield selector.to_element_selector()
-
                         el_selector = selector.to_element_selector()
-                    elif el_selector is not None:
-                        el_selector.append_attr_selector(selector)
+                        results.append(el_selector)
 
-        if el_selector:
-            yield el_selector
+                    elif el_selector is not None:
+                        if selector.is_attribute_selector:
+                            el_selector.append_attr_selector(selector)
+                        else:  # drill
+                            results.append(selector.to_drill_selector())
+
+        return results
 
     def _resolve(self) -> Generator[ast.AST, None, None]:
-        groups = list(self._resolve_query())
+        groups = self._resolve_query()
 
         tree = iter([self.tree])
         for group in groups:

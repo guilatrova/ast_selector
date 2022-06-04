@@ -60,3 +60,19 @@ def test_find_first_raise_below_except_handler():
     found = selector.first()
 
     assert isinstance(found, ast.Raise)
+
+
+def test_find_drill_properties():
+    """
+    Drill ability:
+
+    if Expr has value and value is Call
+    -> then take value from Expr
+    """
+    tree = read_sample("log_object")
+    query = "Expr[value is Call].value"
+
+    selector = AstSelector(query, tree)
+    found = selector.first()
+
+    assert isinstance(found, ast.Call)
