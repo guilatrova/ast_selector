@@ -3,7 +3,9 @@ from __future__ import annotations
 import ast
 import re
 from dataclasses import dataclass, field
-from typing import Generator, List, Optional, Type, Union
+from typing import Generator, Iterator, List, Optional, Type, Union
+
+from .exceptions import UnableToFindElement
 
 
 @dataclass
@@ -37,9 +39,9 @@ class ElementSelector(SelectorGroup):
     def append_attr_selector(self, selector: SelectorGroup) -> None:
         self.attr_selectors.append(selector.to_attribute_selector())
 
-    def find_nodes(self, branches: Union[List[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
-        if not isinstance(branches, list):
-            branches = [branches]
+    def find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
+        if not isinstance(branches, Iterator):
+            branches = iter([branches])
 
         for tree in branches:
             for node in ast.walk(tree):
@@ -91,15 +93,18 @@ class AstSelector:
         # TODO: Validate query
 
     def _resolve_query(self) -> Generator[ElementSelector, None, None]:
-        r = re.match(r"([A-Z]\w+)(\[[a-zA-Z0-9_= ]+\])*", self.query)
+        reggroup = re.findall(r"([A-Z]\w+)(\[[a-zA-Z0-9_= ]+\])*", self.query)
         el_selector: Optional[ElementSelector] = None
 
-        if r:
-            for g in r.groups():
+        for reg in reggroup:
+            for g in reg:
                 if g:
                     selector = SelectorGroup(g)
 
                     if selector.is_element_selector:
+                        if el_selector is None:
+                            yield selector.to_element_selector()
+
                         el_selector = selector.to_element_selector()
                     elif el_selector is not None:
                         el_selector.append_attr_selector(selector)
@@ -109,12 +114,12 @@ class AstSelector:
 
     def _resolve(self) -> Generator[ast.AST, None, None]:
         groups = list(self._resolve_query())
-        # tree
-        # for g in groups:
-        #     g.find_nodes()
 
-        single_group = groups[0]
-        yield from single_group.find_nodes(self.tree)
+        tree = iter([self.tree])
+        for group in groups:
+            tree = group.find_nodes(tree)
+
+        yield from tree
 
     def exists(self) -> bool:
         el = self._resolve()
@@ -132,3 +137,12 @@ class AstSelector:
     def all(self) -> List[ast.AST]:
         nodes = self._resolve()
         return list(nodes)
+
+    def first(self) -> ast.AST:
+        el = self._resolve()
+        try:
+            first = next(el)
+        except StopIteration as e:
+            raise UnableToFindElement(self.query) from e
+        else:
+            return first

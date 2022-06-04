@@ -13,13 +13,13 @@ def func():
     try:
         a = 1
     except Exception:
-        raise MyException()
+        raise MyException()  # exc is Call + cause is None
 
 
-def good():
+def func_two():
     try:
         a = 1
     except MyException as e:
-        raise e  # This is verbose violation, shouldn't trigger no cause
+        raise e
     except Exception:
-        raise  # Just reraising don't need 'from'
+        raise
