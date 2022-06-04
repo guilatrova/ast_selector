@@ -3,7 +3,7 @@ from __future__ import annotations
 import ast
 import re
 from dataclasses import dataclass, field
-from typing import Generator, List, Optional, Type
+from typing import Generator, List, Optional, Type, Union
 
 
 @dataclass
@@ -37,12 +37,16 @@ class ElementSelector(SelectorGroup):
     def append_attr_selector(self, selector: SelectorGroup) -> None:
         self.attr_selectors.append(selector.to_attribute_selector())
 
-    def find_nodes(self, tree: ast.AST) -> Generator[ast.AST, None, None]:
-        for node in ast.walk(tree):
-            if isinstance(node, self.element_type):
-                everything_valid = all(attr.matches(node) for attr in self.attr_selectors)
-                if everything_valid:
-                    yield node
+    def find_nodes(self, branches: Union[List[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
+        if not isinstance(branches, list):
+            branches = [branches]
+
+        for tree in branches:
+            for node in ast.walk(tree):
+                if isinstance(node, self.element_type):
+                    everything_valid = all(attr.matches(node) for attr in self.attr_selectors)
+                    if everything_valid:
+                        yield node
 
 
 @dataclass
@@ -105,6 +109,10 @@ class AstSelector:
 
     def _resolve(self) -> Generator[ast.AST, None, None]:
         groups = list(self._resolve_query())
+        # tree
+        # for g in groups:
+        #     g.find_nodes()
+
         single_group = groups[0]
         yield from single_group.find_nodes(self.tree)
 
@@ -120,3 +128,7 @@ class AstSelector:
     def count(self) -> int:
         nodes = self._resolve()
         return len(list(nodes))
+
+    def all(self) -> List[ast.AST]:
+        nodes = self._resolve()
+        return list(nodes)
