@@ -175,6 +175,16 @@ def test_drill_function_returning_int():
     assert isinstance(found, ast.arguments)
 
 
+def test_reference_nonexisting_match():
+    tree = read_sample("funcs")
+    query = "Raise $Raise"
+
+    selector = AstSelector(query, tree)
+
+    assert selector.exists() is False
+    assert selector.count() == 0
+
+
 # TODO: Support array (e.g. FunctionDef.body[0])
 # TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
 # TODO: Support deeper references (e.g. FunctionDef[1] when FunctionDef(not this) FunctionDef(this))

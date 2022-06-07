@@ -4,7 +4,7 @@ import ast
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Generator, Iterator, List, Type, Union
+from typing import Dict, Generator, Iterator, List, Optional, Type, Union
 
 from .exceptions import UnableToReferenceQuery
 
@@ -30,9 +30,12 @@ class NavigationReference:
         ref = self._build_reference(selector_group)
         self.reference_table[ref].append(val)
 
-    def get_ref_idx(self, ref: str) -> int:
+    def get_ref_idx(self, ref: str) -> Optional[int]:
         k = list(reversed(self.reference_table.keys()))
-        return k.index(ref)
+        if ref in k:
+            return k.index(ref)
+
+        return None
 
 
 @dataclass
@@ -198,13 +201,14 @@ class ReferenceSelector(ElementSelector):
 
         tree = list(branches)  # Force generators to build reference table until this point
         parent_level = self.navigation.get_ref_idx(self.query)
-        for node in tree:
-            selected = node
-            for _ in range(parent_level):
-                selected = selected.parent  # type: ignore
+        if parent_level:
+            for node in tree:
+                selected = node
+                for _ in range(parent_level):
+                    selected = selected.parent  # type: ignore
 
-            if self._matches(selected):
-                yield selected
+                if self._matches(selected):
+                    yield selected
 
 
 @dataclass
