@@ -40,6 +40,7 @@ def test_find_raise_with_two_attrs():
     selector = AstSelector(query, tree)
 
     assert selector.exists() is True
+    assert selector.count() == 1
 
 
 def test_find_all_raise_below_except_handler():

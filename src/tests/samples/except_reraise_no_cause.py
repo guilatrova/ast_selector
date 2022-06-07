@@ -20,6 +20,6 @@ def func_two():
     try:
         a = 1
     except MyException as e:
-        raise e
+        raise e  # exc is Name
     except Exception:
-        raise
+        raise  # exc is None

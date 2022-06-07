@@ -28,10 +28,10 @@ class AstSelector:
         # TODO: Validate query
 
     def _resolve_query(self) -> List[ElementSelector]:
-        PARENT_RE = r"(\.\.)*"
-        NODE_RE = r"(\$?[A-Z]\w+)*"
-        ATTR_RE = r"(\[[a-zA-Z0-9_= ]+\])*"
-        DRILL_RE = r"(\.\w+)*"
+        PARENT_RE = r"(\.\.)?"
+        DRILL_RE = r"(\.\w+)?"
+        ATTR_RE = r"(\[[a-zA-Z0-9_= ]+\])?"
+        NODE_RE = r"(\$?[A-Z]\w+)?"
 
         reg = re.findall(f"{PARENT_RE}{DRILL_RE}{ATTR_RE}{NODE_RE}", self.query)
         reggroup = [x for x in itertools.chain(*reg) if x]
