@@ -54,6 +54,16 @@ query = "FunctionDef.returns[id=int] $FunctionDef"
 function_element = AstSelector(query, tree).first()
 ```
 
+## Contributing
+
+Thank you for considering making AST Selector better for everyone!
+
+Refer to [Contributing docs](docs/CONTRIBUTING.md).
+
+## Change log
+
+See [CHANGELOG](CHANGELOG.md).
+
 ## License
 
 MIT
