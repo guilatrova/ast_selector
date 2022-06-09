@@ -30,7 +30,7 @@
   - [Filter AST by multiple conditions](#filter-ast-by-multiple-conditions)
   - [Drill down but take previous reference](#drill-down-but-take-previous-reference)
   - [Filter and drill through references](#filter-and-drill-through-references)
-  - [Count functions](#count-functions)
+  - [Count nodes](#count-nodes)
   - [Take first node only](#take-first-node-only)
   - [Check if node exists](#check-if-node-exists)
 - [Contributing](#contributing)
@@ -147,7 +147,7 @@ Drill `$FunctionDef` (redundant) and filter functions named `main_int` as result
 AstSelector("FunctionDef.returns[id=int] $FunctionDef[name=main_int]", tree).all()
 ```
 
-### Count functions
+### Count nodes
 
 ```py
 AstSelector(query, tree).count()
