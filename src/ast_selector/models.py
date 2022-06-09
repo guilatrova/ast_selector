@@ -132,6 +132,8 @@ class ElementSelector(SelectorGroup):
 
 @dataclass
 class DrillSelector(ElementSelector):
+    iteration: dict[Any, int] = field(default_factory=lambda: defaultdict(int))
+
     def __post_init__(self) -> None:
         self.element_type = ast.AST
         self.query = self.query.lstrip(".")
@@ -154,8 +156,15 @@ class DrillSelector(ElementSelector):
             branches = iter([branches])
 
         for node in list(branches):
-            if drilled := getattr(node, self.query, False):
+            if self.query.isnumeric():
+                attr_idx = int(self.query)
+                if attr_idx == self.iteration[node.parent]:  # type: ignore
+                    yield node
+
+            elif drilled := getattr(node, self.query, False):
                 yield from self._get_drilled_instances(node, drilled)
+
+            self.iteration[node.parent] += 1  # type: ignore
 
 
 class AttributeSelectorComparator(str, Enum):
@@ -168,6 +177,7 @@ class AttributeSelector(SelectorGroup):
     attr: str = field(init=False)
     condition: AttributeSelectorComparator = field(init=False)
     val: str = field(init=False)
+    iteration: dict[Any, int] = field(default_factory=lambda: defaultdict(int))
 
     def __post_init__(self) -> None:
         self.query = self.query.lstrip("[").rstrip("]")
@@ -185,7 +195,15 @@ class AttributeSelector(SelectorGroup):
         return attr_val == expected_val
 
     def _match_instance(self, node: ast.AST) -> bool:
-        attr_val = getattr(node, self.attr)
+        if self.attr.isdigit():
+            attr_idx = int(self.attr)
+            if attr_idx != self.iteration[node.parent]:  # type: ignore
+                return False
+
+            attr_val = node
+        else:
+            attr_val = getattr(node, self.attr)
+
         expected_val_type = getattr(ast, self.val, type(None))
 
         if isinstance(attr_val, expected_val_type):
@@ -195,9 +213,12 @@ class AttributeSelector(SelectorGroup):
 
     def matches(self, node: ast.AST) -> bool:
         if self.condition == AttributeSelectorComparator.INSTANCE:
-            return self._match_instance(node)
+            result = self._match_instance(node)
+        else:
+            result = self._match_equals(node)
 
-        return self._match_equals(node)
+        self.iteration[node.parent] += 1  # type: ignore
+        return result
 
 
 @dataclass

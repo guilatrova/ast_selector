@@ -210,8 +210,18 @@ def test_long_navigation_get_back_to_original_reference():
     assert isinstance(found, ast.FunctionDef)
 
 
-# TODO: Support array (e.g. FunctionDef.body.0)
-# TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
-# TODO: Support deeper references (e.g. FunctionDef[1] when FunctionDef(not this) FunctionDef(this))
-# TODO: Support OR operations
+def test_drill_filter_child_array():
+    tree = read_sample("func_pass")
+    query = "FunctionDef.body[0 is Pass].0"
+
+    selector = AstSelector(query, tree)
+    found = selector.all()
+
+    assert len(found) == 1
+    assert isinstance(found[0], ast.Pass)
+
+
 # TODO: Support element wildcard (*)
+# TODO: Support deeper references (e.g. $FunctionDef.1 when FunctionDef(not this) FunctionDef(this))
+# TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
+# TODO: Support OR operations
