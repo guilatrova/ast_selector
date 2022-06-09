@@ -200,6 +200,16 @@ def test_drill_list_ast_from_reference():
     assert all(isinstance(x, ast.AST) for x in found)
 
 
+def test_long_navigation_get_back_to_original_reference():
+    tree = read_sample("log_object")
+    query = "FunctionDef Expr[value is Call].value[func is Attribute].func[attr = exception] $FunctionDef"
+
+    selector = AstSelector(query, tree)
+    found = selector.first()
+
+    assert isinstance(found, ast.FunctionDef)
+
+
 # TODO: Support array (e.g. FunctionDef.body.0)
 # TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
 # TODO: Support deeper references (e.g. FunctionDef[1] when FunctionDef(not this) FunctionDef(this))

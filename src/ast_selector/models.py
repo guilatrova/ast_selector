@@ -30,10 +30,10 @@ class NavigationReference:
         ref = self._build_reference(selector_group)
         self.reference_table[ref].append(val)
 
-    def get_ref_idx(self, ref: str) -> Optional[int]:
+    def get_reference(self, ref: str) -> Optional[List[ast.AST]]:
         k = list(reversed(self.reference_table.keys()))
         if ref in k:
-            return k.index(ref)
+            return self.reference_table[ref]
 
         return None
 
@@ -119,10 +119,12 @@ class ElementSelector(SelectorGroup):
             branches = iter([branches])
 
         for tree in branches:
-            parent = tree
             for node in ast.walk(tree):
-                node.parent = parent  # type: ignore
-                parent = node
+                node.parent = getattr(node, "parent", tree)  # type: ignore
+
+                for child in ast.iter_child_nodes(node):
+                    child.parent = node  # type: ignore
+
                 if isinstance(node, self.element_type):
                     if self._matches(node):
                         yield node
@@ -205,20 +207,23 @@ class ReferenceSelector(ElementSelector):
     def __post_init__(self) -> None:
         self.element_type = ast.AST
 
+    def _walk_parent(self, node: ast.AST) -> Generator[ast.AST, None, None]:
+        cur_node = node
+        while cur_node.parent and cur_node != cur_node.parent:  # type: ignore
+            yield cur_node.parent  # type: ignore
+            cur_node = cur_node.parent  # type: ignore
+
     def _find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
         if not isinstance(branches, Iterator):
             branches = iter([branches])
 
         tree = list(branches)  # Force generators to build reference table until this point
-        parent_level = self.navigation.get_ref_idx(self.query)
-        if parent_level:
-            for node in tree:
-                selected = node
-                for _ in range(parent_level):
-                    selected = selected.parent  # type: ignore
+        references = self.navigation.get_reference(self.query) or []
 
-                if self._matches(selected):
-                    yield selected
+        for ref in references:
+            if any((node for node in tree if ref in self._walk_parent(node))):
+                if self._matches(ref):
+                    yield ref
 
 
 @dataclass
