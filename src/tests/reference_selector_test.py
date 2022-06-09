@@ -6,100 +6,7 @@ from ast_selector import AstSelector
 from .helpers import read_sample
 
 
-def test_find_element():
-    tree = read_sample("except_reraise_no_cause")
-    query = "Raise"
-
-    selector = AstSelector(query, tree)
-
-    assert selector.exists() is True
-
-
-def test_count_elements():
-    tree = read_sample("except_reraise_no_cause")
-    query = "Raise"
-
-    selector = AstSelector(query, tree)
-
-    assert selector.count() == 3
-
-
-def test_find_raise_with_single_attr():
-    tree = read_sample("except_reraise_no_cause")
-    query = "Raise[exc is Call]"
-
-    selector = AstSelector(query, tree)
-
-    assert selector.exists() is True
-
-
-def test_find_raise_with_two_attrs():
-    tree = read_sample("except_reraise_no_cause")
-    query = "Raise[exc is Call][cause is None]"
-
-    selector = AstSelector(query, tree)
-
-    assert selector.exists() is True
-    assert selector.count() == 1
-
-
-def test_find_all_raise_below_except_handler():
-    tree = read_sample("except_reraise_no_cause")
-    query = "ExceptHandler Raise[exc is Call]"
-
-    selector = AstSelector(query, tree)
-    found = selector.all()
-
-    assert len(found) == 1
-    assert isinstance(found[0], ast.Raise)
-
-
-def test_find_first_raise_below_except_handler():
-    tree = read_sample("except_reraise_no_cause")
-    query = "ExceptHandler Raise[exc is Call][cause is None]"
-
-    selector = AstSelector(query, tree)
-    found = selector.first()
-
-    assert isinstance(found, ast.Raise)
-
-
-def test_find_drill_properties():
-    """
-    Drill ability:
-
-    if Expr has value and value is Call
-    -> then take value from Expr
-    """
-    tree = read_sample("log_object")
-    query = "Expr[value is Call].value"
-
-    selector = AstSelector(query, tree)
-    found = selector.first()
-
-    assert isinstance(found, ast.Call)
-
-
-def test_filter_drill_properties():
-    """
-    Drill ability:
-
-    if Expr has value and value is Call
-    -> then take value from Expr
-
-    if Expr.value has func and func is Attribute
-    -> then take func from Expr.value
-    """
-    tree = read_sample("log_object")
-    query = "Expr[value is Call].value[func is Attribute].func"
-
-    selector = AstSelector(query, tree)
-    found = selector.first()
-
-    assert isinstance(found, ast.Attribute)
-
-
-def test_drill_properties_get_first():
+def test_drill_properties_reference_first():
     """
     Drill ability + Get origin:
 
@@ -116,7 +23,7 @@ def test_drill_properties_get_first():
     assert isinstance(found.value.func, ast.Attribute)
 
 
-def test_drill_properties_get_second():
+def test_drill_properties_reference_second():
     """
     Drill ability + Get origin:
 
@@ -210,18 +117,4 @@ def test_long_navigation_get_back_to_original_reference():
     assert isinstance(found, ast.FunctionDef)
 
 
-def test_drill_filter_child_array():
-    tree = read_sample("func_pass")
-    query = "FunctionDef.body[0 is Pass].0"
-
-    selector = AstSelector(query, tree)
-    found = selector.all()
-
-    assert len(found) == 1
-    assert isinstance(found[0], ast.Pass)
-
-
-# TODO: Support element wildcard (*)
 # TODO: Support deeper references (e.g. $FunctionDef.1 when FunctionDef(not this) FunctionDef(this))
-# TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
-# TODO: Support OR operations
