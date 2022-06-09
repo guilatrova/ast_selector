@@ -40,12 +40,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: poetry
 
-      - name: Cache poetry dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
-
       - name: Install dependencies
         run: poetry install
 
