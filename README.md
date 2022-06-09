@@ -25,7 +25,7 @@
 ### Installation
 
 ```
-pip install ast_selector
+pip install ast-selector
 ```
 
 ### Usage
