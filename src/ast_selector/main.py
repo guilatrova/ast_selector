@@ -6,7 +6,7 @@ import re
 from typing import Generator, List, Optional
 
 from .exceptions import UnableToFindElement
-from .models import ElementSelector, NavigationReference, SelectorGroup
+from .selectors import ElementSelector, NavigationReference, SelectorGroup
 
 
 class AstSelector:
