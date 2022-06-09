@@ -22,8 +22,17 @@
 - [Installation and usage](#installation-and-usage)
   - [Installation](#installation)
   - [Usage](#usage)
-- [Use Cases](#use-cases)
-  - [Functions that return int](#functions-that-return-int)
+- [Examples](#examples)
+  - [Query by AST type](#query-by-ast-type)
+  - [Filter AST by property type](#filter-ast-by-property-type)
+  - [Drill to AST property](#drill-to-ast-property)
+  - [Filter AST by property value](#filter-ast-by-property-value)
+  - [Filter AST by multiple conditions](#filter-ast-by-multiple-conditions)
+  - [Drill down but take previous reference](#drill-down-but-take-previous-reference)
+  - [Filter and drill through references](#filter-and-drill-through-references)
+  - [Count functions](#count-functions)
+  - [Take first node only](#take-first-node-only)
+  - [Check if node exists](#check-if-node-exists)
 - [Contributing](#contributing)
 - [Change log](#change-log)
 - [License](#license)
@@ -49,18 +58,110 @@ query = "FunctionDef Raise $FunctionDef"
 functions_raising_exceptions = AstSelector(query, tree).all()
 ```
 
-## Use Cases
+## Examples
 
-### Functions that return int
+### Query by AST type
+
+Simply use the AST type. Note it should have the proper casing.
 
 ```py
-from ast_selector import AstSelector
+AstSelector("FunctionDef", tree).all() # Any Ast.FunctionDef
+AstSelector("Raise", tree).all() # Any ast.Raise
+AstSelector("Expr", tree).all() # Any ast.Expr
+```
 
-tree = load_python_code_as_ast_tree()
-query = "FunctionDef.returns[id=int] $FunctionDef"
-# Query all functions that return ints e.g. def sum() -> int
+### Filter AST by property type
 
-function_element = AstSelector(query, tree).first()
+You can filter property types by writing like: `[Prop is Type]`.
+
+Condition: Any `ast.Expr` that contains `.value` prop and that prop is an instance of `ast.Call`
+
+Result: List of `ast.Expr` that fulfills the condition.
+
+```py
+AstSelector("Expr[value is Call]", tree).all()
+```
+
+### Drill to AST property
+
+You can navigate as you filter the elements you want by using `.prop`.
+
+Condition: Any `ast.Expr` that contains `.value` prop and that prop is an instance of `ast.Call`, take `.value`.
+
+Result: List of `ast.Call` that fulfills the condition.
+
+```py
+AstSelector("Expr[value is Call].value", tree).all()
+```
+
+### Filter AST by property value
+
+You can filter property values by writing like: `[Prop = Value]`.
+
+Condition: Any `ast.FunctionDef`, take `returns` as long as it contains `id` equals to `int`.
+
+Result: List of `ast.Name` that fulfills the condition.
+
+```py
+AstSelector("FunctionDef.returns[id=int]", tree).all()
+```
+
+### Filter AST by multiple conditions
+
+You can keep appending `[Cond1][Cond2][Cond3]` as you wish:
+
+Condition: Any `ast.Raise` that has `exc` of type `ast.Call` **AND** that has `cause` as `None`.
+
+Result: List of `ast.Raise` that fulfills the condition.
+
+```py
+AstSelector("Raise[exc is Call][cause is None]", tree).all()
+```
+
+### Drill down but take previous reference
+
+You can keep drilling down, but take a previous value as your result by using `$[Placeholder]` syntax:
+
+Condition: Any `ast.FunctionDef`, take `returns` as long as it has `id` equals to `int`, then take the original `FunctionDef`.
+
+Result: List of `ast.FunctionDef` that fulfills the condition.
+
+```py
+AstSelector("FunctionDef.returns[id=int] $FunctionDef", tree).all()
+```
+
+### Filter and drill through references
+
+You can keep filtering and drilling references as you would normally.
+
+Drill `$Expr` and take `args` as result:
+
+```py
+AstSelector("Expr[value is Call].value[func is Attribute].func[attr = exception] $Expr.value.args", tree).all()
+```
+
+Drill `$FunctionDef` (redundant) and filter functions named `main_int` as result:
+
+```py
+AstSelector("FunctionDef.returns[id=int] $FunctionDef[name=main_int]", tree).all()
+```
+
+### Count functions
+
+```py
+AstSelector(query, tree).count()
+```
+
+### Take first node only
+
+```py
+AstSelector(query, tree).first()  # Raises exception if None
+```
+
+### Check if node exists
+
+```py
+AstSelector(query, tree).exists()
 ```
 
 ## Contributing
