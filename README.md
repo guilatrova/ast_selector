@@ -1,5 +1,3 @@
-# AST Selector
-
 <p align="center">
     <img src="https://raw.githubusercontent.com/guilatrova/ast_selector/main/img/logo.png">
 </p>
@@ -19,6 +17,17 @@
 </p>
 
 > "Query AST elements 🌲 by using CSS Selector-like 💅 syntax."
+
+**Summary**
+- [Installation and usage](#installation-and-usage)
+  - [Installation](#installation)
+  - [Usage](#usage)
+- [Use Cases](#use-cases)
+  - [Functions that return int](#functions-that-return-int)
+- [Contributing](#contributing)
+- [Change log](#change-log)
+- [License](#license)
+- [Credits](#credits)
 
 ## Installation and usage
 
@@ -40,9 +49,9 @@ query = "FunctionDef Raise $FunctionDef"
 functions_raising_exceptions = AstSelector(query, tree).all()
 ```
 
-### Use Cases
+## Use Cases
 
-#### Functions that return int
+### Functions that return int
 
 ```py
 from ast_selector import AstSelector
