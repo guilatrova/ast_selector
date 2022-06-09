@@ -13,11 +13,9 @@ include = [
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Environment :: Console",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: Quality Assurance",
 ]
 packages = [
     { include = "ast_selector", from = "src" },
@@ -32,9 +30,6 @@ version_variable = [
 ]
 version_toml = [
     "pyproject.toml:tool.poetry.version"
-]
-version_pattern = [
-    "README.md:rev: v{version}"
 ]
 major_on_zero = false
 branch = "main"
@@ -55,6 +50,7 @@ tryceratops = "^1.1.0"
 pre-commit = "^2.18.1"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
+python-semantic-release = "^7.29.1"
 
 [tool.black]
 line-length = 120
