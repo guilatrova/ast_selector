@@ -4,7 +4,7 @@ import ast
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Generator, Iterator, List, Optional, Type, Union
+from typing import Any, Dict, Generator, Iterator, List, Optional, Type, Union
 
 from .exceptions import UnableToReferenceQuery
 
@@ -134,16 +134,26 @@ class DrillSelector(ElementSelector):
         self.element_type = ast.AST
         self.query = self.query.lstrip(".")
 
+    def _get_drilled_instances(self, parent: ast.AST, node: Any) -> Generator[ast.AST, None, None]:
+        drilled_instances: list[ast.AST] = []
+
+        if isinstance(node, ast.AST):
+            drilled_instances = [node]
+        elif isinstance(node, list):
+            drilled_instances = [valid for valid in node if isinstance(valid, ast.AST)]
+
+        for drilled in drilled_instances:
+            if self._matches(drilled):
+                drilled.parent = parent  # type: ignore
+                yield drilled
+
     def _find_nodes(self, branches: Union[Iterator[ast.AST], ast.AST]) -> Generator[ast.AST, None, None]:
         if not isinstance(branches, Iterator):
             branches = iter([branches])
 
         for node in list(branches):
             if drilled := getattr(node, self.query, False):
-                if isinstance(drilled, ast.AST):
-                    if self._matches(drilled):
-                        drilled.parent = node  # type: ignore
-                        yield drilled
+                yield from self._get_drilled_instances(node, drilled)
 
 
 class AttributeSelectorComparator(str, Enum):

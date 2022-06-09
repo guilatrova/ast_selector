@@ -185,6 +185,23 @@ def test_reference_nonexisting_match():
     assert selector.count() == 0
 
 
-# TODO: Support array (e.g. FunctionDef.body[0])
+def test_drill_list_ast_from_reference():
+    """
+    1. Drill from Expr, to value.func
+    2. Reference $Expr.value
+    3. Drill to .args
+    """
+    tree = read_sample("log_object")
+    query = "Expr[value is Call].value[func is Attribute].func[attr = exception] $Expr.value.args"
+
+    selector = AstSelector(query, tree)
+    found = selector.all()
+
+    assert all(isinstance(x, ast.AST) for x in found)
+
+
+# TODO: Support array (e.g. FunctionDef.body.0)
 # TODO: Support direct children (e.g. FunctionDef > FunctionDef using ast.iter_children instead of ast.walk)
 # TODO: Support deeper references (e.g. FunctionDef[1] when FunctionDef(not this) FunctionDef(this))
+# TODO: Support OR operations
+# TODO: Support element wildcard (*)
